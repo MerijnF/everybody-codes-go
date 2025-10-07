@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/merijnf/everybody-codes-go/internal/e2024q01"
+	"github.com/merijnf/everybody-codes-go/internal/e2024q02"
 )
 
 type QuestPart struct {
@@ -21,7 +22,14 @@ func main() {
 		result = e2024q01.SolveP2()
 	case QuestPart{1, 3}:
 		result = e2024q01.SolveP3()
+	case QuestPart{2, 1}:
+		result = e2024q02.SolveP1()
+	case QuestPart{2, 2}:
+		result = e2024q02.SolveP2()
+	case QuestPart{2, 3}:
+		result = e2024q02.SolveP3()
 	}
+
 	fmt.Println("Solution:", result)
 }
 
