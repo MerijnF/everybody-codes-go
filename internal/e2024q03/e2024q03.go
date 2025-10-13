@@ -8,20 +8,38 @@ import (
 	"github.com/merijnf/everybody-codes-go/pkg/print"
 )
 
-type Coordinate struct {
+type Vector struct {
 	X int
 	Y int
 }
 
-func SolveP1() string {
-	input := input.ReadInput(2024, 3, 1)
+var allDirections = []Vector{
+	{X: 0, Y: -1},  // up
+	{X: 1, Y: -1},  // up-right
+	{X: 1, Y: 0},   // right
+	{X: 1, Y: 1},   // down-right
+	{X: 0, Y: 1},   // down
+	{X: -1, Y: 1},  // down-left
+	{X: -1, Y: 0},  // left
+	{X: -1, Y: -1}, // up-left
+}
+
+var cardinalDirections = []Vector{
+	{X: 0, Y: -1}, // up
+	{X: 1, Y: 0},  // right
+	{X: 0, Y: 1},  // down
+	{X: -1, Y: 0}, // left
+}
+
+func dig(part int, checkDirections []Vector) string {
+	input := input.ReadInput(2024, 3, part)
 	lines := strings.Split(input, "\r\n")
 	grid := make([][]rune, len(lines))
 	for i, line := range lines {
 		grid[i] = []rune(line)
 	}
 
-	dugPositions := make([]Coordinate, 0)
+	dugPositions := make([]Vector, 0)
 
 	print.PrintGrid(grid)
 	blocksDug := 0
@@ -29,14 +47,14 @@ func SolveP1() string {
 	for y, row := range grid {
 		for x, cell := range row {
 			if cell == '#' {
-				dugPositions = append(dugPositions, Coordinate{X: x, Y: y})
+				dugPositions = append(dugPositions, Vector{X: x, Y: y})
 				grid[y][x] = '1'
 				blocksDug++
 			}
 		}
 	}
 
-	newDugPositions := make([]Coordinate, 0)
+	newDugPositions := make([]Vector, 0)
 	layer := 2
 	prevLayerStr := '1'
 	layerStr := '2'
@@ -44,19 +62,32 @@ func SolveP1() string {
 	for len(dugPositions) > 0 {
 		for _, pos := range dugPositions {
 			// check neighbors
-
-			if (pos.X > 0 && (grid[pos.Y][pos.X-1] == prevLayerStr || (grid[pos.Y][pos.X-1] == layerStr))) &&
-				(pos.X < len(grid[0])-1 && (grid[pos.Y][pos.X+1] == prevLayerStr || grid[pos.Y][pos.X+1] == layerStr)) &&
-				(pos.Y > 0 && (grid[pos.Y-1][pos.X] == prevLayerStr || grid[pos.Y-1][pos.X] == layerStr)) &&
-				(pos.Y < len(grid)-1 && (grid[pos.Y+1][pos.X] == prevLayerStr || grid[pos.Y+1][pos.X] == layerStr)) {
+			ok := true
+			for _, dir := range checkDirections {
+				nx := pos.X + dir.X
+				ny := pos.Y + dir.Y
+				if nx >= 0 && nx <= len(grid[0])-1 && ny >= 0 && ny <= len(grid)-1 {
+					// in bounds
+					posCell := grid[ny][nx]
+					if !(posCell == prevLayerStr || posCell == layerStr) {
+						ok = false
+						break
+					}
+				} else {
+					// out of bounds
+					ok = false
+					break
+				}
+			}
+			if ok {
 				// all neighbors dug, dig this one too
-				newDugPositions = append(newDugPositions, Coordinate{X: pos.X, Y: pos.Y})
+				newDugPositions = append(newDugPositions, Vector{X: pos.X, Y: pos.Y})
 				grid[pos.Y][pos.X] = layerStr
 				blocksDug++
 			}
 		}
 		dugPositions = newDugPositions
-		newDugPositions = make([]Coordinate, 0)
+		newDugPositions = make([]Vector, 0)
 		prevLayerStr = rune(strconv.Itoa(layer)[0])
 		layer++
 		layerStr = rune(strconv.Itoa(layer)[0])
@@ -64,114 +95,16 @@ func SolveP1() string {
 	}
 
 	return strconv.Itoa(blocksDug)
+}
+
+func SolveP1() string {
+	return dig(1, cardinalDirections)
 }
 
 func SolveP2() string {
-	input := input.ReadInput(2024, 3, 2)
-	lines := strings.Split(input, "\r\n")
-	grid := make([][]rune, len(lines))
-	for i, line := range lines {
-		grid[i] = []rune(line)
-	}
-
-	dugPositions := make([]Coordinate, 0)
-
-	print.PrintGrid(grid)
-	blocksDug := 0
-	// dig first layer
-	for y, row := range grid {
-		for x, cell := range row {
-			if cell == '#' {
-				dugPositions = append(dugPositions, Coordinate{X: x, Y: y})
-				grid[y][x] = '1'
-				blocksDug++
-			}
-		}
-	}
-
-	newDugPositions := make([]Coordinate, 0)
-	layer := 2
-	prevLayerStr := '1'
-	layerStr := '2'
-	print.PrintGrid(grid)
-	for len(dugPositions) > 0 {
-		for _, pos := range dugPositions {
-			// check neighbors
-
-			if (pos.X > 0 && (grid[pos.Y][pos.X-1] == prevLayerStr || (grid[pos.Y][pos.X-1] == layerStr))) &&
-				(pos.X < len(grid[0])-1 && (grid[pos.Y][pos.X+1] == prevLayerStr || grid[pos.Y][pos.X+1] == layerStr)) &&
-				(pos.Y > 0 && (grid[pos.Y-1][pos.X] == prevLayerStr || grid[pos.Y-1][pos.X] == layerStr)) &&
-				(pos.Y < len(grid)-1 && (grid[pos.Y+1][pos.X] == prevLayerStr || grid[pos.Y+1][pos.X] == layerStr)) {
-				// all neighbors dug, dig this one too
-				newDugPositions = append(newDugPositions, Coordinate{X: pos.X, Y: pos.Y})
-				grid[pos.Y][pos.X] = layerStr
-				blocksDug++
-			}
-		}
-		dugPositions = newDugPositions
-		newDugPositions = make([]Coordinate, 0)
-		prevLayerStr = rune(strconv.Itoa(layer)[0])
-		layer++
-		layerStr = rune(strconv.Itoa(layer)[0])
-		print.PrintGrid(grid)
-	}
-
-	return strconv.Itoa(blocksDug)
+	return dig(2, cardinalDirections)
 }
 
 func SolveP3() string {
-	input := input.ReadInput(2024, 3, 3)
-	lines := strings.Split(input, "\r\n")
-	grid := make([][]rune, len(lines))
-	for i, line := range lines {
-		grid[i] = []rune(line)
-	}
-
-	dugPositions := make([]Coordinate, 0)
-
-	print.PrintGrid(grid)
-	blocksDug := 0
-	// dig first layer
-	for y, row := range grid {
-		for x, cell := range row {
-			if cell == '#' {
-				dugPositions = append(dugPositions, Coordinate{X: x, Y: y})
-				grid[y][x] = '1'
-				blocksDug++
-			}
-		}
-	}
-
-	newDugPositions := make([]Coordinate, 0)
-	layer := 2
-	prevLayerStr := '1'
-	layerStr := '2'
-	print.PrintGrid(grid)
-	for len(dugPositions) > 0 {
-		for _, pos := range dugPositions {
-			// check neighbors
-
-			if (pos.X > 0 && (grid[pos.Y][pos.X-1] == prevLayerStr || (grid[pos.Y][pos.X-1] == layerStr))) &&
-				(pos.X < len(grid[0])-1 && (grid[pos.Y][pos.X+1] == prevLayerStr || grid[pos.Y][pos.X+1] == layerStr)) &&
-				(pos.Y > 0 && (grid[pos.Y-1][pos.X] == prevLayerStr || grid[pos.Y-1][pos.X] == layerStr)) &&
-				(pos.Y < len(grid)-1 && (grid[pos.Y+1][pos.X] == prevLayerStr || grid[pos.Y+1][pos.X] == layerStr)) &&
-				(pos.X > 0 && pos.Y > 0 && (grid[pos.Y-1][pos.X-1] == prevLayerStr || (grid[pos.Y-1][pos.X-1] == layerStr))) &&
-				(pos.X > 0 && pos.Y < len(grid)-1 && (grid[pos.Y+1][pos.X-1] == prevLayerStr || grid[pos.Y+1][pos.X-1] == layerStr)) &&
-				(pos.X < len(grid[0])-1 && pos.Y > 0 && (grid[pos.Y-1][pos.X+1] == prevLayerStr || grid[pos.Y-1][pos.X+1] == layerStr)) &&
-				(pos.X < len(grid[0])-1 && pos.Y < len(grid)-1 && (grid[pos.Y+1][pos.X+1] == prevLayerStr || grid[pos.Y+1][pos.X+1] == layerStr)) {
-				// all neighbors dug, dig this one too
-				newDugPositions = append(newDugPositions, Coordinate{X: pos.X, Y: pos.Y})
-				grid[pos.Y][pos.X] = layerStr
-				blocksDug++
-			}
-		}
-		dugPositions = newDugPositions
-		newDugPositions = make([]Coordinate, 0)
-		prevLayerStr = rune(strconv.Itoa(layer)[0])
-		layer++
-		layerStr = rune(strconv.Itoa(layer)[0])
-		print.PrintGrid(grid)
-	}
-
-	return strconv.Itoa(blocksDug)
+	return dig(3, allDirections)
 }
