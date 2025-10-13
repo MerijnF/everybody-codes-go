@@ -5,6 +5,7 @@ import (
 
 	"github.com/merijnf/everybody-codes-go/internal/e2024q01"
 	"github.com/merijnf/everybody-codes-go/internal/e2024q02"
+	"github.com/merijnf/everybody-codes-go/internal/e2024q03"
 )
 
 type QuestPart struct {
@@ -28,6 +29,14 @@ func main() {
 		result = e2024q02.SolveP2()
 	case QuestPart{2, 3}:
 		result = e2024q02.SolveP3()
+	case QuestPart{3, 1}:
+		result = e2024q03.SolveP1()
+	case QuestPart{3, 2}:
+		result = e2024q03.SolveP2()
+	case QuestPart{3, 3}:
+		result = e2024q03.SolveP3()
+	default:
+		result = "Not implemented"
 	}
 
 	fmt.Println("Solution:", result)
